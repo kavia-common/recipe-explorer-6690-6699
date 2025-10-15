@@ -1,0 +1,515 @@
+ /*
+  Summary (Screen 100:2323)
+  - Base: 375x812 frame, content width 315 with 30px side margins (Pure White theme tokens).
+  - Pixel adjustments from Figma JSON:
+      • Rating: top 10px, right 10px within card
+      • Bookmark: top 116px, right 7px within card
+      • Cooking time: top 116px, right 41px within card
+      • Title width: 194px; start 5px inside content
+      • Reviews: top 160px, right 5px
+      • Card top offset: 88px below top (via status bar 44 + header 24 + extra 20)
+  - Responsiveness: switched fixed widths (card image, ingredient rows) to fluid while retaining exact metrics at 375px.
+  - Accessibility: strong focus-visible states, reduced motion support.
+  - Cross-browser safe CSS only; minimal specificity; optimized image attrs in HTML.
+*/
+
+ /* Theme tokens (minimalist Pure White) */
+:root {
+  --primary: #374151;
+  --secondary: #9CA3AF;
+  --success: #10B981;
+  --error: #EF4444;
+  --background: #FFFFFF;
+  --surface: #F9FAFB;
+  --text: #111827;
+
+  --title-size: 17px;
+  --title-weight: 700;
+  --body-size: 14px;
+  --body-weight: 500;
+  --small-size: 12px;
+
+  --space-xxs: 4px;
+  --space-xs: 6px;
+  --space-sm: 8px;
+  --space-md: 12px;
+  --space-lg: 16px;
+  --space-xl: 24px;
+
+  --frame-width: 375px;
+  --frame-side: 30px; /* 315 content width inside 375 frame => margins 30px */
+}
+
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html, body { height: 100%; }
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--background);
+  color: var(--text);
+  font-family: ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Root screen with responsive wrapper preserving 375 design width ratio */
+.screen {
+  position: relative;
+  width: min(100vw, var(--frame-width));
+  margin: 0 auto;
+  background: var(--background);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Status bar */
+.status-bar {
+  position: relative;
+  height: 44px;
+  width: 100%;
+}
+
+.status-time {
+  position: absolute;
+  left: 29.5px;
+  top: 14px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1;
+}
+
+.status-icons {
+  position: absolute;
+  right: 12px;
+  top: 14px;
+  display: none; /* icons omitted (assets not present) */
+}
+
+/* Header */
+.header {
+  position: relative;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: calc(100% - (var(--frame-side) * 2));
+  margin: 6px var(--frame-side) 0 var(--frame-side);
+  color: var(--primary);
+}
+
+.icon-btn {
+  background: transparent;
+  padding: 0;
+  border: none;
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--primary);
+}
+
+/* Focus visibility for accessibility */
+.icon-btn:focus-visible,
+.btn-small:focus-visible,
+.tab:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+/* Card section */
+.card {
+  position: relative;
+  width: calc(100% - (var(--frame-side) * 2));
+  margin-left: var(--frame-side);
+  margin-right: var(--frame-side);
+  margin-top: 20px; /* Status (44) + Header (24) + 20 = 88 from top to card */
+}
+
+.card-image {
+  width: 100%;        /* Fluid (was 315px) */
+  height: 150px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--surface);
+}
+
+.card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.rating {
+  position: absolute;
+  top: 10px;
+  right: 10px;        /* Precisely 10px inside card right */
+  height: 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(249, 250, 251, 0.85);
+  border-radius: 8px;
+  padding: 2px 6px;
+  color: var(--text);
+}
+
+.rating .star {
+  width: 8px;
+  height: 8px;
+  flex: 0 0 auto;
+}
+
+.rating .rating-text {
+  font-size: 12px;
+  line-height: 1;
+}
+
+.food-title {
+  margin: 8px 0 0 5px; /* 5px inset from content left per JSON (3366-3361) */
+  font-size: var(--title-size);
+  line-height: 21px;
+  font-weight: var(--title-weight);
+  color: var(--text);
+  width: 194px;                  /* exact JSON width */
+  max-width: calc(100% - 46px);  /* responsive safety without changing base */
+}
+
+/* Bookmark button */
+.bookmark {
+  position: absolute;
+  top: 116px;  /* Matches JSON offset from image top (342-226=116) */
+  right: 7px;  /* cardRight(3676) - (x+width=>3645+24) = 7 */
+  width: 24px;
+  height: 24px;
+  color: var(--secondary);
+}
+.bookmark[aria-pressed="true"] {
+  color: var(--success);
+}
+.bookmark .bookmark-icon {
+  width: 16px;
+  height: 16px;
+}
+
+/* Time meta on card */
+.meta-time {
+  position: absolute;
+  top: 116px;   /* Same baseline as bookmark */
+  right: 41px;  /* cardRight(3676) - (x+width=>3575+60) = 41 */
+  display: inline-flex;
+  height: 24px;
+  align-items: center;
+  gap: 6px;
+  color: var(--primary);
+}
+
+.meta-time .timer {
+  width: 17px;
+  height: 17px;
+}
+
+.meta-time .time-text {
+  font-size: 14px;
+}
+
+/* Reviews label */
+.reviews {
+  position: absolute;
+  top: 160px;  /* image top (0) + 150 + 10 spacing = 160 */
+  right: 5px;  /* cardRight(3676) - (x+width=>3578+93) = 5 */
+}
+
+.reviews-text {
+  font-size: 13px;
+  color: var(--secondary);
+}
+
+/* Meta rows (serve + items) */
+.meta-rows {
+  position: relative;
+  width: calc(100% - (var(--frame-side) * 2));
+  margin: 24px var(--frame-side) 0 var(--frame-side);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.row.serve {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  gap: 6px;
+}
+
+.serve-icon {
+  width: 17px;
+  height: 17px;
+  background: transparent;
+  position: relative;
+}
+
+.serve-icon-glyph {
+  position: absolute;
+  inset: 2px;
+  border-radius: 2px;
+  background: var(--surface);
+}
+
+.serve-text,
+.items-text {
+  font-size: 13px;
+  color: var(--secondary);
+}
+
+.row.items {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+}
+
+/* Creator profile */
+.creator {
+  position: relative;
+  width: calc(100% - (var(--frame-side) * 2));
+  margin-left: var(--frame-side);
+  margin-right: var(--frame-side);
+  margin-top: 12px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.creator-left {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.creator-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+}
+
+.creator-info {
+  display: grid;
+  grid-auto-rows: max-content;
+}
+
+.creator-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 21px;
+}
+
+.creator-location {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--secondary);
+}
+
+.location-icon {
+  width: 17px;
+  height: 17px;
+}
+
+.location-text {
+  font-size: 13px;
+}
+
+/* Buttons */
+.btn-small {
+  min-width: 85px;
+  height: 37px;
+  padding: 0 14px;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  background: var(--primary);
+  color: var(--background);
+  cursor: pointer;
+}
+.btn-small[aria-pressed="true"] {
+  background: var(--success);
+}
+
+/* Tabs */
+.tabs {
+  position: relative;
+  width: 100%;
+  height: 58px;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  padding-left: var(--frame-side);
+  padding-right: var(--frame-side);
+  box-sizing: border-box;
+  margin-top: 18px;
+}
+
+.tab {
+  width: 150px;
+  height: 33px;
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--primary);
+  border: 1px solid transparent;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.tab.active {
+  background: var(--primary);
+  color: var(--background);
+}
+
+/* Ingredients list panel */
+.ingredients-panel {
+  position: relative;
+  width: calc(100% - (var(--frame-side) * 2));
+  margin-left: var(--frame-side);
+  margin-right: var(--frame-side);
+  margin-top: 8px;
+}
+
+.ingredients-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.ingredient-row {
+  position: relative;
+  width: 100%;   /* fluid, base equals 315px */
+  height: 76px;
+  background: var(--surface);
+  border-radius: 12px;
+  display: grid;
+  grid-template-columns: 52px 1fr auto;
+  align-items: center;
+  column-gap: 16px;
+  padding: 12px;
+  box-sizing: border-box;
+  margin-bottom: 8px;
+}
+
+.ingredient-row .thumb {
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+  background: #EEE;
+}
+
+.thumb-bg {
+  position: absolute;
+  inset: 0;
+  width: 52px;
+  height: 52px;
+  object-fit: cover;
+}
+
+.thumb-bg-plain {
+  position: absolute;
+  inset: 0;
+  background: #EDEDED;
+  border-radius: 12px;
+}
+
+.thumb-img {
+  position: absolute;
+  left: 6px;
+  top: 6px;
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 8px;
+  display: block;
+}
+
+.ingredient-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.ingredient-qty {
+  font-size: 14px;
+  color: var(--secondary);
+  justify-self: end;
+}
+
+/* Procedure placeholder */
+.procedure-panel {
+  position: relative;
+  width: calc(100% - (var(--frame-side) * 2));
+  margin: 12px var(--frame-side);
+}
+
+.procedure-placeholder {
+  width: 100%;
+  min-height: 120px;
+  background: var(--surface);
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  color: var(--secondary);
+}
+
+/* Home indicator */
+.home-indicator {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(100vw, var(--frame-width));
+  height: 34px;
+  display: grid;
+  place-items: center;
+  background: transparent;
+  pointer-events: none;
+}
+
+.home-indicator-line {
+  width: 135px;
+  height: 5px;
+  background: #D1D5DB; /* light gray iOS home indicator */
+  border-radius: 3px;
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Basic responsiveness: center the 375 layout on wide screens */
+@media (min-width: 768px) {
+  .screen {
+    margin-top: 16px;
+    margin-bottom: 16px;
+    border: 1px solid #eee;
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+  }
+}
