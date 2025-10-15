@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import logo from './logo.svg';
 import './App.css';
 import './styles/recipeingrident-100-2323.css';
@@ -15,21 +16,11 @@ function App() {
 
   // PUBLIC_INTERFACE
   const toggleTheme = () => {
-    setTheme(prevTheme => prevTheme === 'light' ? 'dark' : 'light');
+    setTheme((prevTheme) => (prevTheme === 'light' ? 'dark' : 'light'));
   };
 
-  // Lightweight routing without react-router:
-  // If path is /recipe/ingredient render the Figma page; otherwise show default template.
-  const pathname = typeof window !== 'undefined' ? window.location.pathname : '/';
-  if (pathname === '/recipe/ingredient') {
-    return (
-      <div className="App">
-        <RecipeIngredient />
-      </div>
-    );
-  }
-
-  return (
+  // Preserve existing default page for the root route
+  const Home = () => (
     <div className="App">
       <header className="App-header">
         <button
@@ -54,8 +45,24 @@ function App() {
         >
           Learn React
         </a>
+        <a
+          className="App-link"
+          href="/recipe/ingredient"
+          style={{ marginTop: 12 }}
+        >
+          Open Recipe Ingredient
+        </a>
       </header>
     </div>
+  );
+
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/recipe/ingredient" element={<RecipeIngredient />} />
+      </Routes>
+    </Router>
   );
 }
 
